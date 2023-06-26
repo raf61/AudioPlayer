@@ -76,6 +76,7 @@ ipcMain.on('audios:delete', (e, data) => {
   if (index == -1){
     return
   }
+  fs.unlinkSync(audios[index].path)
   audios.splice(index, 1)
   db.set('audios', audios)
   e.reply('audios:update', audios)
@@ -90,7 +91,7 @@ ipcMain.on('audios:importyt', async (e, data) => {
   let youtubeVideo;
   try{
     youtubeVideo = ytdl(url, {filter:'audioonly'})
-    const audioPath = path.join(audioDirectory, crypto.randomBytes(16).toString() + '.mp3')
+    const audioPath = path.join(audioDirectory, crypto.randomBytes(16).toString('hex') + '.mp3')
     await pipeline(youtubeVideo, fs.createWriteStream(audioPath))
     const audios = db.get('audios')
     audios.push({
