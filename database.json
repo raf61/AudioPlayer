@@ -1,0 +1,29 @@
+{
+    "audios": [
+        {
+            "id": "acb9dcaa-7588-47e9-9557-37cb98e4ed82",
+            "path": "/home/rafael/JsProjects/audioplayer/audio/wearethechampions.mp3",
+            "name": "We are the champions."
+        },
+        {
+            "id": "072266f0-0abe-465d-9bac-51db3caac344",
+            "path": "/home/rafael/JsProjects/audioplayer/audio/surpresa.mp3",
+            "name": "Som de surpresa!"
+        },
+        {
+            "id": "ea686e5b-812d-4ee2-a954-c1abb6744b8d",
+            "path": "/home/rafael/JsProjects/audioplayer/audio/�ɭ\u0011')m���Z�\f}��.mp3",
+            "name": "Down below"
+        },
+        {
+            "id": "62fc2b53-e1af-4169-803f-ec02ac171126",
+            "path": "/home/rafael/JsProjects/audioplayer/audio/dontstopmenow.mp3",
+            "name": "Dont stop me now"
+        },
+        {
+            "id": "6eff10fb-1575-4a2b-b655-1b821438acf0",
+            "path": "/home/rafael/JsProjects/audioplayer/audio/comeasyouare.mp3",
+            "name": "Come as you are."
+        }
+    ]
+}
