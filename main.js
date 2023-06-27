@@ -1,19 +1,28 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path')
 const fs = require('fs')
 const JSONdb = require('simple-json-db')
 const ytdl = require('ytdl-core')
-const crypto = require('crypto');
-const { pipeline } = require('stream/promises');
+const crypto = require('crypto')
+const { pipeline } = require('stream/promises')
+const prepareDataDirectory = require('./prepareDataDirectory')
+
+
+process.env.NODE_ENV = 'production'
 const isDev = process.env.NODE_ENV !== 'production'
-const audioDirectory = path.join(__dirname, 'audio')
-const db = new JSONdb(path.join(__dirname, 'database.json'))
+const dataDirectory = path.join(app.getPath('appData'), 'audioplayer')
+prepareDataDirectory(dataDirectory)
+
+
+const dbPath = path.join(dataDirectory, 'database.json')
+const audioDirectory = path.join(dataDirectory, 'audio')
+const db = new JSONdb(dbPath)
 
 
 
 function createMainWindow() { 
   const mainWindow = new BrowserWindow({
-    title: 'Image resizer', 
+    title: 'AudioPlayer', 
     width: 1000,
     height:600,
     webPreferences:{
@@ -24,7 +33,7 @@ function createMainWindow() {
   })
 
   mainWindow.loadFile(path.join(__dirname, 'dist/index.html'))
-
+  mainWindow.setMenu(null)
   if (isDev){
     mainWindow.webContents.openDevTools()
   }
@@ -44,7 +53,6 @@ app.on('window-all-closed', () => {
 })
 
 ipcMain.on('audios:importfile', async (e, data) => {
-
   if (!fs.existsSync(data.path)){
     return
   }

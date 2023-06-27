@@ -27,3 +27,6 @@ audio
 *.njsproj
 *.sln
 *.sw?
+
+out/
+database.json
