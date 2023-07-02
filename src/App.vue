@@ -12,6 +12,10 @@ ipcRenderer.on('audios:update', (data) => {
   store.commit('SET_AUDIOS', data)
 })
 
+ipcRenderer.on('audios:added', () => {
+  ipcRenderer.send('audios:update')
+})
+
 </script>
 
 <template>

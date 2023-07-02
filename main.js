@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path')
 const fs = require('fs')
 const JSONdb = require('simple-json-db')
@@ -6,6 +6,17 @@ const ytdl = require('ytdl-core')
 const crypto = require('crypto')
 const { pipeline } = require('stream/promises')
 const prepareDataDirectory = require('./prepareDataDirectory')
+const ffmpeg = require('fluent-ffmpeg');
+// const ffmpegPath = require('ffmpeg-static').replace(
+//     'app.asar',
+//     'app.asar.unpacked'
+// );
+// const ffprobePath = require('ffprobe-static').path.replace(
+//     'app.asar',
+//     'app.asar.unpacked'
+// );
+// ffmpeg.setFfmpegPath(ffmpegPath);
+// ffmpeg.setFfprobePath(ffprobePath);
 
 
 process.env.NODE_ENV = 'production'
@@ -66,7 +77,7 @@ ipcMain.on('audios:importfile', async (e, data) => {
   })
   db.set('audios', audios)
 
-  e.reply('audios:update', audios)  
+  e.reply('audios:added')
 })
 
 ipcMain.on('audios:update', (e, data) => {
@@ -91,16 +102,34 @@ ipcMain.on('audios:delete', (e, data) => {
 })
 
 ipcMain.on('audios:importyt', async (e, data) => {
-  const {url, name} = data
+  let {url, name, startTime, duration} = data
   if (!url || !name){
     return
   }
-
-  let youtubeVideo;
+  if (typeof startTime != 'number'){
+    startTime = 0
+  }
+  if (typeof duration != 'number'){
+    duration = null
+  }
+  
   try{
-    youtubeVideo = ytdl(url, {filter:'audioonly'})
     const audioPath = path.join(audioDirectory, crypto.randomBytes(16).toString('hex') + '.mp3')
-    await pipeline(youtubeVideo, fs.createWriteStream(audioPath))
+    if (!startTime && !duration){
+      const youtubeVideo = ytdl(url, {filter:'audioonly'})
+      await pipeline(youtubeVideo, fs.createWriteStream(audioPath))
+    }
+    else{
+      const videoInfo = await (ytdl.getInfo(url))
+      const videoDuration = videoInfo.videoDetails.lengthSeconds
+      if (duration && (startTime + duration > videoDuration || startTime < 0 || duration < 0)){
+        throw new Error('Invalid duration time')
+      }
+      const videoURL = videoInfo.formats.find(x => x.itag == 251).url
+      await ffmpegDownload(videoURL, audioPath, startTime, duration)
+    }    
+
+
     const audios = db.get('audios')
     audios.push({
       id: crypto.randomUUID(),
@@ -108,10 +137,25 @@ ipcMain.on('audios:importyt', async (e, data) => {
       name
     })
     db.set('audios', audios)
-    e.reply('audios:update', audios)
+    e.reply('audios:added')
   }
   catch(err){
     e.reply('audios:importyt:error')
     return
   }
 })
+
+async function ffmpegDownload(url, target, start, duration){
+  const ffmpegStream = ffmpeg()
+  .input(url)
+  .format('mp3')
+  .setStartTime(start)
+  if (duration){
+    ffmpegStream.setDuration(duration)
+  }
+
+  await pipeline(
+    ffmpegStream,
+    fs.createWriteStream(target)
+  )
+}

@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import Loader from '../components/Loader.vue';
 import AudioRecord from '../components/AudioRecord.vue';
+import { computed, ref } from 'vue';
 import {useStore} from 'vuex'
 const audioInput = ref()
 const audioToUpload = ref(null)
@@ -8,6 +9,14 @@ const audioName = ref('')
 const youtubeURL = ref('')
 const store = useStore()
 const audios = computed(() => store.state.audios)
+const ytStartTime = ref(0)
+const ytDuration = ref(null)
+const loadingAudio = ref(false)
+
+
+ipcRenderer.on('audios:added', () => {
+    loadingAudio.value = false
+})
 
 const onChangeAudioInput = () => {
     const file = audioInput.value.files[0]
@@ -15,12 +24,14 @@ const onChangeAudioInput = () => {
 }
 
 const onClickImportButton = () => {
+    
     ipcRenderer.send('audios:importfile', {
         name: audioName.value,
         path: audioToUpload.value.path
     })
     audioToUpload.value = null
     audioName.value = ''
+    loadingAudio.value = true
 }
 
 const onClickImportFromYoutube = () => {
@@ -36,18 +47,24 @@ const onClickImportFromYoutube = () => {
 
     ipcRenderer.send('audios:importyt', {
         url: youtubeURL.value,
-        name: audioName.value
+        name: audioName.value,
+        startTime: ytStartTime.value,
+        duration: ytDuration.value
     })
 
     audioToUpload.value = ''
     audioName.value = ''
     youtubeURL.value = ''
+    ytDuration.value = null
+    ytStartTime.value = 0
+    loadingAudio.value = true
 
 
 }
 
 ipcRenderer.on('audios:importyt:error', (e) => {
     alert('Could not import audio from YouTube')
+    loadingAudio.value = false
 })
 
 </script>
@@ -76,30 +93,44 @@ ipcRenderer.on('audios:importyt:error', (e) => {
 
             <div class="imports-container">
                 <h4 class="no-selection">Import audio</h4>
-                <input accept="audio/*" @change="onChangeAudioInput" ref="audioInput" type=file id="audioinput" hidden/>
-                <div class="audioname-input-container">
-                    <input v-model="audioName" maxlength="70" required name="audioname" placeholder="Choose a name for the audio" />
-                </div>
-                <div class="import-from-youtube">
-                    <div class="ytURL-input-container">
-                        <input v-model="youtubeURL" maxlength="70" required name="youtubeURL" placeholder="Youtube URL" />
+                <div v-if="!loadingAudio">
+                    <input accept="audio/*" @change="onChangeAudioInput" ref="audioInput" type=file id="audioinput" hidden/>
+                    <div class="audioname-input-container">
+                        <input v-model="audioName" maxlength="70" required name="audioname" placeholder="Choose a name for the audio" />
                     </div>
-                    <p @click="onClickImportFromYoutube">
-                        From Youtube video
-                    </p>
+                    <div class="import-from-youtube">
+                        <div class="ytURL-input-container">
+                            <input v-model="youtubeURL" maxlength="70" required name="youtubeURL" placeholder="Youtube URL" />
+                        </div>
+                        <div class="ytTime-input-container">
+                            <div>
+                                <span>Start time (sec)</span>
+                                <input type="number" v-model="ytStartTime" min="0" required name="youtubeStartTime" placeholder="Start time" />
+                            </div>
+                            <div>
+                                <span>Duration (sec)</span>
+                                <input type="number" min="0" v-model="ytDuration" required name="youtubeDuration" placeholder="Automatic" />
+                            </div>
+                        </div>
+                        <p @click="onClickImportFromYoutube">
+                            From Youtube video
+                        </p>
+                    </div>
+                    <h5 class="h-or">
+                        OR
+                    </h5>
+                    <label for="audioinput" class="no-selection">
+                        Choose file
+                    </label>
+                    <div class="filename text-truncate">
+                        <span>{{ audioToUpload?.name }}</span>
+                    </div>
+                    <button :disabled="!audioToUpload || !audioName" @click="onClickImportButton" type="button" class="import-button">Import from computer</button>
                 </div>
-                <h5 class="h-or">
-                    OR
-                </h5>
-                <label for="audioinput" class="no-selection">
-                    Choose file
-                </label>
-                <div class="filename text-truncate">
-                    <span>{{ audioToUpload?.name }}</span>
+                <div class="loader-container" v-else>
+                    <Loader></Loader>
                 </div>
-                <button :disabled="!audioToUpload || !audioName" @click="onClickImportButton" type="button" class="import-button">Import from computer</button>
             </div>
-
         </div>
     </main>
 
@@ -212,5 +243,18 @@ label[for=audioinput]{
     margin: .3rem auto;
     font-size:14pt;
 }
-
+.ytTime-input-container{
+    display:flex;
+    gap:.5rem;
+    padding-bottom:.5rem;
+}
+.ytTime-input-container span{
+    font-size:9pt;
+}
+.loader-container{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 1rem;
+}
 </style>
