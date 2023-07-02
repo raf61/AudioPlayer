@@ -207,7 +207,7 @@ onMounted(() => {
 
 #time-indicator{
     position:relative;
-    top:-2rem;
+    top:-2.2rem;
     left:100%;
     display:none;
 }
