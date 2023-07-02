@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
-  base: path.resolve(__dirname, "./dist/")
+  base: ''
   // original Vue configuration
   // resolve: {
   //   alias: {
