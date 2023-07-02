@@ -13,8 +13,6 @@
     "make-linux": "electron-forge make --platform linux --targets=@electron-forge/maker-deb"
   },
   "dependencies": {
-    "ffmpeg-static": "^5.1.0",
-    "ffprobe-static": "^3.1.0",
     "fluent-ffmpeg": "^2.1.2",
     "lodash": "^4.17.21",
     "simple-json-db": "^2.0.0",

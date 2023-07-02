@@ -7,16 +7,6 @@ const crypto = require('crypto')
 const { pipeline } = require('stream/promises')
 const prepareDataDirectory = require('./prepareDataDirectory')
 const ffmpeg = require('fluent-ffmpeg');
-// const ffmpegPath = require('ffmpeg-static').replace(
-//     'app.asar',
-//     'app.asar.unpacked'
-// );
-// const ffprobePath = require('ffprobe-static').path.replace(
-//     'app.asar',
-//     'app.asar.unpacked'
-// );
-// ffmpeg.setFfmpegPath(ffmpegPath);
-// ffmpeg.setFfprobePath(ffprobePath);
 
 
 process.env.NODE_ENV = 'production'
