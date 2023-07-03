@@ -6,7 +6,8 @@ const ytdl = require('ytdl-core')
 const crypto = require('crypto')
 const { pipeline } = require('stream/promises')
 const prepareDataDirectory = require('./prepareDataDirectory')
-const ffmpeg = require('fluent-ffmpeg');
+const { execSync } = require('child_process');
+const ffmpeg = require('fluent-ffmpeg')
 
 
 process.env.NODE_ENV = 'production'
@@ -104,21 +105,23 @@ ipcMain.on('audios:importyt', async (e, data) => {
   }
   
   try{
-    const audioPath = path.join(audioDirectory, crypto.randomBytes(16).toString('hex') + '.mp3')
-    if (!startTime && !duration){
-      const youtubeVideo = ytdl(url, {filter:'audioonly'})
-      await pipeline(youtubeVideo, fs.createWriteStream(audioPath))
-    }
-    else{
-      const videoInfo = await (ytdl.getInfo(url))
-      const videoDuration = videoInfo.videoDetails.lengthSeconds
+    let audioPath = path.join(audioDirectory, crypto.randomBytes(16).toString('hex') + '.webm')
+    const videoInfo = await (ytdl.getInfo(url))
+    const videoDuration = videoInfo.videoDetails.lengthSeconds
+    
+    const audioStream = ytdl.downloadFromInfo(videoInfo, {
+      filter:'audioonly',
+    })
+
+    await pipeline(audioStream, fs.createWriteStream(audioPath))
+    if (duration || startTime){
       if (duration && (startTime + duration > videoDuration || startTime < 0 || duration < 0)){
         throw new Error('Invalid duration time')
       }
-      const videoURL = videoInfo.formats.find(x => x.itag == 251).url
-      await ffmpegDownload(videoURL, audioPath, startTime, duration)
-    }    
-
+      const savePath = path.join(audioDirectory, crypto.randomBytes(16).toString('hex') + '.webm')
+      await ffmpegEdit(audioPath, startTime, duration, savePath)
+      audioPath = savePath
+    }
 
     const audios = db.get('audios')
     audios.push({
@@ -134,18 +137,32 @@ ipcMain.on('audios:importyt', async (e, data) => {
     return
   }
 })
+function ffmpegEdit(target, start, duration, savePath){
 
-async function ffmpegDownload(url, target, start, duration){
-  const ffmpegStream = ffmpeg()
-  .input(url)
-  .format('mp3')
+  let audioStream = ffmpeg(target)
   .setStartTime(start)
   if (duration){
-    ffmpegStream.setDuration(duration)
+    audioStream = audioStream.setDuration(duration)
   }
+  audioStream = audioStream.output(savePath)
 
-  await pipeline(
-    ffmpegStream,
-    fs.createWriteStream(target)
-  )
+  return new Promise((resolve, reject) => {
+    
+    audioStream.on('end', () => {
+      resolve()
+    })
+
+    audioStream.once('error', (err) => {
+      reject(err)
+    })
+
+    audioStream.run()
+  })
+  
+
 }
+
+
+
+
+
