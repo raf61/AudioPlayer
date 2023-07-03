@@ -1,8 +1,9 @@
 {
   "name": "audioplayer",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "author":"raf61",
   "private": true,
-  "description": "AudioPlayer is an audio player ;).",
+  "description": "AudioPlayer is an audio player ;)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -10,7 +11,8 @@
     "electron": "vite build && electron .",
     "start": "vite build && electron-forge start",
     "package": "electron-forge package",
-    "make-linux": "electron-forge make --platform linux --targets=@electron-forge/maker-deb"
+    "make-linux": "electron-forge make --platform linux --targets=@electron-forge/maker-deb",
+    "make-windows-squirrel": "electron-forge make --targets=@electron-forge/maker-squirrel"
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
