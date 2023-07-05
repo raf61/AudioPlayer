@@ -10,9 +10,9 @@
     "preview": "vite preview",
     "electron": "vite build && electron .",
     "start": "vite build && electron-forge start",
-    "package": "electron-forge package",
-    "make-linux": "electron-forge make --platform linux --targets=@electron-forge/maker-deb",
-    "make-windows-squirrel": "electron-forge make --targets=@electron-forge/maker-squirrel"
+    "package": "vite build && electron-forge package",
+    "make-linux": "vite build && electron-forge make --platform linux --targets=@electron-forge/maker-deb",
+    "make-windows-squirrel": "vite build && electron-forge make --targets=@electron-forge/maker-squirrel"
   },
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
