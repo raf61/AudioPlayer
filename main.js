@@ -6,7 +6,6 @@ const ytdl = require('ytdl-core')
 const crypto = require('crypto')
 const { pipeline } = require('stream/promises')
 const prepareDataDirectory = require('./prepareDataDirectory')
-const { execSync } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg')
 
 
